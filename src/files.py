@@ -6,7 +6,7 @@ def main():
 	pass
 
 def read_chats_local_file(being, end)):
-     with
+     pass
       
 def write_chat_local_file(msg :list[str], filename="chats.log"):
 

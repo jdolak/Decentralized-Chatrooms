@@ -3,6 +3,7 @@
 import curses
 import threading
 import time
+from node import *
 from functools import partial
 
 def _print_messages(stdscr : curses.window, messages):
@@ -53,13 +54,29 @@ def get_more_msgs(stdscr : curses.window, win: curses.window, messages):
         h, w = stdscr.getmaxyx()
         stdscr.clear()
         stdscr.addstr(h - 2, 1, f'Message: ') 
-        messages.append(("Jachob", stdscr.getstr().decode()))
+
+        msg = stdscr.getstr().decode()
+        if msg.startswith('/'):
+            messages.append(("COMMAND", msg))
+            win.refresh()
+            if not parse_command(msg):
+               messages.append(("SYSTEM", "SUCCESS")) 
+        else:
+            messages.append(("Jachob", msg))
         stdscr.refresh()
         win.refresh()
 
 def test():
     messages = [("Jachob", "hello there"), ("Jachob", "test1"), ("Jachob", "test2")]
     print_messages(messages)
+
+def parse_command(msg:str):
+    msg = msg.strip('/')
+    args = msg.split()
+
+    if args[0] == "cluster" and args[1] == "join":
+        return join_node(args[2])
+
 
 if __name__ == '__main__':
     test()
