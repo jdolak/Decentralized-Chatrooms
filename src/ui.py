@@ -6,6 +6,7 @@ import time
 
 from node import join_node, send_chat, Chatnode, get_new_messages
 from functools import partial
+from tools import LOG
 
 def _print_messages(stdscr : curses.window, node:Chatnode):
 
@@ -29,7 +30,6 @@ def _print_messages(stdscr : curses.window, node:Chatnode):
         start = 0
         if len(messages) >= h - 4:
             start = len(messages) - h + 4
-            print(start)
 
         for n, i in enumerate(range(start, len(messages))):
             out = f'{messages[i][0]} : {messages[i][1]}'
@@ -73,6 +73,8 @@ def take_user_input(stdscr : curses.window, win: curses.window, node:Chatnode):
             except Exception as e:
                 messages.append((node.username, msg))
                 messages.append(("ERROR", e))
+                LOG.warning(e)
+
 
         stdscr.refresh()
         win.refresh()

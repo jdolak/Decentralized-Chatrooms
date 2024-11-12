@@ -2,7 +2,7 @@
 
 import json
 
-from tools import DEBUG
+from tools import DEBUG, LOG
 from files import log_transaction
 from socket import socket
 
@@ -13,11 +13,11 @@ def send_rpc(c_socket, msg):
     totalsent = 0
     msg = bytes(f'{msg_len :09d}' + msg, 'utf-8')
     if DEBUG:
-        print(c_socket.fileno(), ':', msg)
+        LOG.info(f"{c_socket.fileno()} : {msg}")
     while totalsent < msg_len:
         sent = c_socket.send(msg[totalsent:])
         if sent == 0:
-            print("socket connection broken")
+            LOG.error("socket connection broken")
         totalsent = totalsent + sent
 
 
@@ -34,7 +34,7 @@ def parse_rpc(msg:bytes, node, sock:socket):
     try:
         log_transaction(data, msg_arr)
     except Exception as e:
-        print(f"logging error:\n{e}")
+        LOG.error(f"logging error:\n{e}")
 
     response = perform_tx(data, msg_arr)
 
@@ -51,7 +51,7 @@ def perform_tx(data, node):
             case "new-msg":
                 result =  msg_arr.append((data["user"], data["content"]))
     except Exception as e:
-        print(f"Something went wrong:\n{e}")
+        LOG.error(f"Something went wrong:\n{e}")
         response = data
         response["result"] = "Error"
     else:
@@ -71,8 +71,7 @@ def receive_rpc(c_socket)->bytes:
     try:
         msg_size = int(msg.decode())
     except Exception as e:
-        print("Bad read")
-        print(e)
+        LOG.error(f"Bad read : {e}")
         return 0
 
     chunks = []
@@ -81,7 +80,7 @@ def receive_rpc(c_socket)->bytes:
     while bytes_recd < msg_size:
         chunk = c_socket.recv(min(msg_size - bytes_recd, 2048))
         if chunk == b'':
-            print("socket connection broken")
+            LOG.error("socket connection broken")
         chunks.append(chunk)
         bytes_recd = bytes_recd + len(chunk)
     return b''.join(chunks)
