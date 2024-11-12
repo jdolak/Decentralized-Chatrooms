@@ -3,7 +3,8 @@
 import curses
 import threading
 import time
-from node import *
+
+from node import join_node, send_chat
 from functools import partial
 
 def _print_messages(stdscr : curses.window, messages):
@@ -62,6 +63,7 @@ def get_more_msgs(stdscr : curses.window, win: curses.window, messages):
             if not parse_command(msg):
                messages.append(("SYSTEM", "SUCCESS")) 
         else:
+            send_chat(msg)
             messages.append(("Jachob", msg))
         stdscr.refresh()
         win.refresh()

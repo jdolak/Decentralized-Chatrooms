@@ -2,10 +2,7 @@
 
 import json
 
-def main():
-	pass
-
-def read_chats_local_file(being, end)):
+def read_chats_local_file(being, end):
      pass
       
 def write_chat_local_file(msg :list[str], filename="chats.log"):
@@ -15,5 +12,8 @@ def write_chat_local_file(msg :list[str], filename="chats.log"):
     with open(filename, 'a') as f:
          f.write(line)
 
+def log_transaction():
+     pass
+
 if __name__ == '__main__':
-    main()
+    pass

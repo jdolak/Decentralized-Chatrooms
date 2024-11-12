@@ -1,5 +1,7 @@
 import logging
 
+DEBUG = False
+
 logging.basicConfig(
      filename="log",
      encoding="utf-8",
