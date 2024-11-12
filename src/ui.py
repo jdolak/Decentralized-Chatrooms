@@ -18,7 +18,6 @@ def _print_messages(stdscr : curses.window, node:Chatnode):
     
     simulation_user(messages)
 
-
     while True:
         win.clear()
         win.border()
@@ -33,7 +32,6 @@ def _print_messages(stdscr : curses.window, node:Chatnode):
             out = f'{messages[i][0]} : {messages[i][1]}'
             win.addstr(n+1, 1, out)
 
-        #stdscr.addstr(h - 2, 1, f'Message: ')
         win.refresh()
         time.sleep(0.25)
 
@@ -68,9 +66,9 @@ def get_more_msgs(stdscr : curses.window, win: curses.window, node:Chatnode):
         else:
             try:
                 send_chat(node, msg)
-                messages.append(("Jachob", msg))
+                messages.append((node.username, msg))
             except Exception as e:
-                messages.append(("Jachob", msg))
+                messages.append((node.username, msg))
                 messages.append(("ERROR", e))
 
         stdscr.refresh()
