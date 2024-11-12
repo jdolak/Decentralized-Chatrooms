@@ -1,12 +1,15 @@
 #!/usr/bin/env python3
 
+from node import Chatnode
 from ui import print_messages
 
-Messages = [("Jachob", "hello there"), ("Jachob", "test1"), ("Jachob", "test2")]
+chatnode = Chatnode("Jachob")
+
 
 def main():
     
-    print_messages(Messages)
+    chatnode.messages = [("Jachob", "hello there"), ("Jachob", "test1"), ("Jachob", "test2")]
+    print_messages(chatnode)
 	
 
 if __name__ == '__main__':

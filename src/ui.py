@@ -4,15 +4,17 @@ import curses
 import threading
 import time
 
-from node import join_node, send_chat
+from node import join_node, send_chat, Chatnode
 from functools import partial
 
-def _print_messages(stdscr : curses.window, messages):
+def _print_messages(stdscr : curses.window, node:Chatnode):
+
+    messages = node.messages
 
     h, w = stdscr.getmaxyx()
     win = curses.newwin(h-2, w, 0, 0)
     curses.curs_set(False)
-    threading.Thread(target=get_more_msgs, args=(stdscr, win, messages), daemon=True).start()
+    threading.Thread(target=get_more_msgs, args=(stdscr, win, node), daemon=True).start()
     
     simulation_user(messages)
 
@@ -36,8 +38,8 @@ def _print_messages(stdscr : curses.window, messages):
         time.sleep(0.25)
 
 
-def print_messages(messages):
-    curses.wrapper(partial(_print_messages,messages=messages))
+def print_messages(node:Chatnode):
+    curses.wrapper(partial(_print_messages,node=node))
 
 
 def simulation_user(messages):
@@ -49,7 +51,8 @@ def _simulation_user(messages):
         time.sleep(2)
 
 
-def get_more_msgs(stdscr : curses.window, win: curses.window, messages):
+def get_more_msgs(stdscr : curses.window, win: curses.window, node:Chatnode):
+    messages = node.messages
     stdscr.keypad(True)
     while True:
         h, w = stdscr.getmaxyx()
@@ -63,8 +66,13 @@ def get_more_msgs(stdscr : curses.window, win: curses.window, messages):
             if not parse_command(msg):
                messages.append(("SYSTEM", "SUCCESS")) 
         else:
-            send_chat(msg)
-            messages.append(("Jachob", msg))
+            try:
+                send_chat(node, msg)
+                messages.append(("Jachob", msg))
+            except Exception as e:
+                messages.append(("Jachob", msg))
+                messages.append(("ERROR", e))
+
         stdscr.refresh()
         win.refresh()
 

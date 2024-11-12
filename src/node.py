@@ -1,14 +1,18 @@
 #!/usr/bin/env python3
 
 import json
+import socket
 
 from networking import send_rpc
 
 class Chatnode:
     def __init__(self, username) -> None:
 
-        self.socket_next = 0
-        self.socket_prev = 0
+        self.socket_next = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
+        self.socket_prev = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
+        
+        self.socket_prev.bind(('',0))
+        self.port = self.socket_prev.getsockname()[1]
 
         self.username = username
         self.messages = []
