@@ -4,6 +4,8 @@ import json
 
 from tools import DEBUG
 from files import log_transaction
+from socket import socket
+
 
 def send_rpc(c_socket, msg):
 
@@ -18,7 +20,10 @@ def send_rpc(c_socket, msg):
             print("socket connection broken")
         totalsent = totalsent + sent
 
-def parse_requests(msg:bytes, msg_arr:list, sock):
+
+def parse_rpc(msg:bytes, node, sock:socket):
+
+    msg_arr = node.messages
 
     if not msg:
         return 0
@@ -37,7 +42,9 @@ def parse_requests(msg:bytes, msg_arr:list, sock):
     
     return 0
 
-def perform_tx(data, msg_arr:list):
+def perform_tx(data, node):
+
+    msg_arr = node.messages
 
     try:
         match data["method"]:
@@ -53,7 +60,8 @@ def perform_tx(data, msg_arr:list):
 
     return response
 
-def receive_rpc(c_socket):
+
+def receive_rpc(c_socket)->bytes:
 
     msg = c_socket.recv(9)
     

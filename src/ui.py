@@ -4,7 +4,7 @@ import curses
 import threading
 import time
 
-from node import join_node, send_chat, Chatnode
+from node import join_node, send_chat, Chatnode, get_new_messages
 from functools import partial
 
 def _print_messages(stdscr : curses.window, node:Chatnode):
@@ -14,11 +14,14 @@ def _print_messages(stdscr : curses.window, node:Chatnode):
     h, w = stdscr.getmaxyx()
     win = curses.newwin(h-2, w, 0, 0)
     curses.curs_set(False)
-    threading.Thread(target=get_more_msgs, args=(stdscr, win, node), daemon=True).start()
+    threading.Thread(target=take_user_input, args=(stdscr, win, node), daemon=True).start()
     
     simulation_user(messages)
 
     while True:
+
+        get_new_messages(node)
+
         win.clear()
         win.border()
         curses.echo()
@@ -49,7 +52,7 @@ def _simulation_user(messages):
         time.sleep(2)
 
 
-def get_more_msgs(stdscr : curses.window, win: curses.window, node:Chatnode):
+def take_user_input(stdscr : curses.window, win: curses.window, node:Chatnode):
     messages = node.messages
     stdscr.keypad(True)
     while True:
@@ -61,7 +64,7 @@ def get_more_msgs(stdscr : curses.window, win: curses.window, node:Chatnode):
         if msg.startswith('/'):
             messages.append(("COMMAND", msg))
             win.refresh()
-            if not parse_command(msg):
+            if not parse_command(node, msg):
                messages.append(("SYSTEM", "SUCCESS")) 
         else:
             try:
@@ -74,17 +77,16 @@ def get_more_msgs(stdscr : curses.window, win: curses.window, node:Chatnode):
         stdscr.refresh()
         win.refresh()
 
-def test():
-    messages = [("Jachob", "hello there"), ("Jachob", "test1"), ("Jachob", "test2")]
-    print_messages(messages)
 
-def parse_command(msg:str):
+def parse_command(node:Chatnode, msg:str):
+
     msg = msg.strip('/')
     args = msg.split()
 
     if args[0] == "cluster" and args[1] == "join":
-        return join_node(args[2])
+        return join_node(node, args[2])
 
 
 if __name__ == '__main__':
-    test()
+    messages = [("Jachob", "hello there"), ("Jachob", "test1"), ("Jachob", "test2")]
+    print_messages(messages)
