@@ -38,7 +38,7 @@ def parse_rpc(msg:bytes, node, sock:socket):
 
     response = perform_tx(data, msg_arr)
 
-    send_rpc(sock, json.dumps(response))
+    #send_rpc(sock, json.dumps(response))
     
     return 0
 
