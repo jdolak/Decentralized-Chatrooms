@@ -1,5 +1,4 @@
 #!/usr/bin/env python3
-
 import json
 
 def read_chats_local_file(being, end):

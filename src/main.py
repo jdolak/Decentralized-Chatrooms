@@ -5,9 +5,8 @@ from ui import print_messages
 
 chatnode = Chatnode("Jachob")
 
-
 def main():
-    
+    chatnode.messages = [("Jachob", "hello there"), ("Jachob", "test1"), ("Jachob", "test2")] 
     chatnode.messages = [("Jachob", "hello there"), ("Jachob", "test1"), ("Jachob", "test2")]
     print_messages(chatnode)
 	
