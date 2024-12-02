@@ -8,17 +8,29 @@ from socket import socket
 
 
 def send_rpc(c_socket, msg):
-
+    """
+    Sends an RPC message through the given socket.
+    """
     msg_len = len(msg)
     totalsent = 0
-    msg = bytes(f'{msg_len :09d}' + msg, 'utf-8')
+    msg = bytes(f'{msg_len:09d}' + msg, 'utf-8')
+    c_socket.settimeout(5)  # Timeout after 5 seconds
+
     if DEBUG:
         LOG.info(f"{c_socket.fileno()} : {msg}")
-    while totalsent < msg_len:
-        sent = c_socket.send(msg[totalsent:])
-        if sent == 0:
-            LOG.error("socket connection broken")
-        totalsent = totalsent + sent
+
+    try:
+        while totalsent < msg_len:
+            sent = c_socket.send(msg[totalsent:])
+            if sent == 0:
+                raise RuntimeError("Socket connection broken")
+            totalsent += sent
+    except socket.timeout:
+        LOG.error("RPC send timed out.")
+    except Exception as e:
+        LOG.error(f"Error sending RPC: {e}")
+    finally:
+        c_socket.settimeout(None)
 
 
 def parse_rpc(msg:bytes, node, sock:socket):
