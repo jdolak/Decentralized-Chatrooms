@@ -32,6 +32,7 @@ class Chatnode:
         self.next_user = ""
 
         self.channel_curr = "general"
+        self.subscribed_channels = set(["general", "system"])
 
 
     def start_listening(self):

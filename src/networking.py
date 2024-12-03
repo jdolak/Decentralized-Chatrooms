@@ -175,7 +175,7 @@ def new_prev(data, node):
     LOG.info(f"Previous node now set to {node.prev_user}")
 
 def new_msg(data, node, msg):
-    if data["user"] != node.username:
+    if data["user"] != node.username and data["channel"] in node.subscribed_channels:
         node.messages.append((data["author"], data["channel"], data["content"]))
     pass_along(data, node, msg)
 

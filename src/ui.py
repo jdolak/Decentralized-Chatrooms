@@ -19,7 +19,6 @@ def _print_messages(stdscr: curses.window, node: Chatnode):
 
     h, w = stdscr.getmaxyx()
     win = curses.newwin(h - 2, w, 0, 0)
-    curses.curs_set(False)
 
     threading.Thread(target=take_user_input, args=(stdscr, win, node), daemon=True).start()
     #simulation_user(messages)
@@ -31,6 +30,8 @@ def _print_messages(stdscr: curses.window, node: Chatnode):
         win.border()
         curses.echo()
 
+
+
         start = 0
         if len(messages) >= h - 4:
             start = len(messages) - h + 4
@@ -38,8 +39,9 @@ def _print_messages(stdscr: curses.window, node: Chatnode):
         for n, i in enumerate(range(start, len(messages))):
             out = f'[{messages[i][1]}] {messages[i][0]} : {messages[i][2]}'
             win.addstr(n + 1, 1, out)
-
+        curses.curs_set(False)
         win.refresh()
+        curses.curs_set(True)
         time.sleep(0.25)
 
 def print_messages(node: Chatnode):
@@ -79,18 +81,17 @@ def take_user_input(stdscr: curses.window, win: curses.window, node: Chatnode):
     messages = node.messages
     stdscr.keypad(True)
     while True:
+        curses.curs_set(True)
         h, w = stdscr.getmaxyx()
         stdscr.clear()
-        stdscr.addstr(h - 2, 1, f'Message: ')
+        stdscr.addstr(h - 2, 1, f'[{node.channel_curr}] Message: ')
 
         msg = stdscr.getstr().decode()
         if msg.startswith('/'):
             messages.append(("COMMAND", "system", msg))
             win.refresh()
-            if not parse_command(node, msg):
-                messages.append(("SYSTEM", "system", "SUCCESS"))
-            else:
-                messages.append(("SYSTEM", "system", "ERROR : Failed to join"))
+            response = parse_command(node, msg)
+            messages.append(("SYSTEM", "system", response))
 
         else:
             try:
@@ -117,7 +118,31 @@ def parse_command(node: Chatnode, msg: str) -> bool:
     args = msg.split()
 
     if args[0] == "cluster" and args[1] == "join":
-        return join_node(node, args[2])
+        if join_node(node, args[2]):
+            return "ERROR : Failed to join"
+        else:
+            return f"SUCCESS : joined {args[2]}"
+
+    
+    elif args[0] == "sub":
+        node.subscribed_channels.add(args[1])
+        return f"SUCCESS : subscribed to channel {args[1]}"
+
+    elif args[0] == "unsub":
+        if args[1] != "general":
+            if args[1] in node.subscribed_channels:
+                node.subscribed_channels.remove(args[1])
+                node.channel_curr = "general"
+                return f"SUCCESS : unsubscribed from channel {args[1]}"
+            else: 
+                return f"INVALID : was not subscribed to {args[1]}"
+        else:
+            return "INVALID : cannot unsub to gereral"
+
+    elif args[0] == "switch":
+        if args[1] in node.subscribed_channels:
+            node.channel_curr = args[1]
+            return f"Now on channel {args[1]}"
     return False
 
 if __name__ == '__main__':
