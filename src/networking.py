@@ -4,7 +4,7 @@ import json
 
 from tools import DEBUG, LOG
 from files import log_transaction
-from socket import socket
+import socket
 
 class socketTimout(Exception):
     pass
@@ -37,7 +37,7 @@ def send_rpc(c_socket, msg):
         c_socket.settimeout(None)
 
 
-def parse_rpc(msg:bytes, node, sock:socket):
+def parse_rpc(msg:bytes, node, sock:socket.socket):
 
     if not msg:
         return 0
@@ -69,12 +69,16 @@ def perform_tx(data, node, msg:bytes):
 
         elif data["method"] == "update-prev":
             LOG.info(f"Recieved update-prev rpc : {data}")
-            node.socket_prev_c = node.socket_prev_curr
             update_prev(data, node)
 
         elif data["method"] == "update-next":
             LOG.info(f"Recieved update-next rpc : {data}")
-    
+            update_next(data, node)
+
+        elif data["method"] == "new-prev":
+            LOG.info(f"Recieved new-prev rpc : {data}")
+            new_prev(data, node)
+
         else:
             LOG.warning(f"Recieved unknown rpc : {data}")
 
@@ -116,30 +120,63 @@ def pass_along(data, node, msg:bytes):
     if data["method"] == "new-msg" and data["user"] != node.username:
         msg = msg.decode('utf-8')
         send_rpc(node.socket_next, msg)
+
 	
 def update_prev(data, node):
-    try:
-        host = data["host"]
-        port = data["listing_port"]
+    host = data["host"]
+    port = data["listing_port"]
 
-        if node.no_neighbor:
+    if node.no_neighbor:
+        try:
             node.socket_next.connect((host,int(port)))
             node.no_neighbor = False
+            node.next_user = data["user"]
             LOG.info(f"added {(host,int(port))} as next node")
-        else:
-            LOG.info(f"Attempting to send update-next message to {node.socket_prev_c.getsockname()}")
+        except Exception as e:
+            LOG.error(f"Failed to set {(host,int(port))} as next node : {e}")
+
+    else:
+        try:
+            LOG.info(f"Attempting to send update-next message")
             rpc = json.dumps({
                 "method": "update-next",
-                "user": node.username,
+                "user": data["user"],
                 "host": host,
                 "port": port
             })
             send_rpc(node.socket_prev_c, rpc)
-            LOG.info(f"send update-next message to {node.socket_prev_c.getsockname()}")
-        
-    except Exception as e:
-        LOG.error(f"Failed to set {(host,int(port))} as next node : {e}")
+            LOG.info(f"sent : {rpc}")
+        except:
+            LOG.error(f"Failed to set previous node : {e}")
+    node.socket_prev_c = node.socket_curr_c
+    node.prev_user = data["user"]
 
+def update_next(data, node):
+    try:
+        node.socket_next.close()
+        node.socket_next = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
+    except Exception as e:
+        LOG.error(f"Error closing and creating new socket : {e}")
+    
+    try:
+        node.socket_next.connect((data["host"], int(data["port"])))
+        rpc = json.dumps({
+                "method": "new-prev",
+                "user" : node.username
+            })
+        send_rpc(node.socket_next, rpc)
+
+        node.next_user = data["user"]
+        LOG.info(f"Next node now set to {node.next_user}")
+    except Exception as e:
+        LOG.error(f"Error sending new-prev : {e}")
+
+def new_prev(data, node):
+    node.socket_prev_c = node.socket_curr_c
+    node.prev_user = data["user"]
+    LOG.info(f"Previous node now set to {node.prev_user}")
+ 
+    
 
 if __name__ == '__main__':
     pass

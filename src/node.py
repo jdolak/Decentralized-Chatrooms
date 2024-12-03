@@ -16,7 +16,7 @@ class Chatnode:
         self.socket_prev_s = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
         self.socket_prev_c = 0
         self.socket_prev_incoming = []
-        self.socket_prev_curr = 0
+        self.socket_curr_c = 0
 
         # Bind the previous socket to a random available port
         self.socket_prev_s.bind(('', 0))
@@ -28,12 +28,15 @@ class Chatnode:
         self.addr = f"{socket.gethostname()}:{self.socket_prev_s_port}"
         self.no_neighbor = True
 
+        self.prev_user = ""
+        self.next_user = ""
+
 
     def start_listening(self):
         """
         Start listening for incoming connections on the previous socket.
         """
-        
+
         self.socket_prev_s.listen()
 
         LOG.info(f"{self.username} is listening on port {self.socket_prev_s_port}")
@@ -50,14 +53,17 @@ class Chatnode:
                 LOG.error(f"error accepting socket : {e}")
 
             try:
+                self.socket_prev_incoming = list(filter(lambda x: x.fileno() > 0, self.socket_prev_incoming))
+
                 for client in select.select(self.socket_prev_incoming, [],[],0)[0]:
-                    LOG.debug(f"Processing {client.getsockname()}")
-                    LOG.info("hello")
-                    self.socket_prev_curr = client
-                    
-                    data = receive_rpc(client)
-                    if data:
-                        parse_rpc(data, self, client)
+                    self.socket_curr_c = client
+
+                    try: 
+                        data = receive_rpc(client)
+                        if data:
+                            parse_rpc(data, self, client)
+                    except Exception as e:
+                        LOG.error(f"Error handling RPC : {e}")
             except Exception as e:
                     LOG.error(f"Error handling connection: {e}")
 
@@ -72,17 +78,19 @@ def join_node(node: Chatnode, next_node_address: str) -> bool:
         node.socket_next.connect((next_host, int(next_port)))
         LOG.info(f"{node.username} connected to next node at {next_host}:{next_port}")
 
+        node.socket_prev_incoming.insert(0, node.socket_next)
+
         # Notify the next node to update its predecessor
         rpc = json.dumps({
             "method": "update-prev",
             "host": node.hostname,
             "listing_port": node.socket_prev_s_port,
-            "username" : node.username
+            "user" : node.username
         })
         send_rpc(node.socket_next, rpc)
         LOG.info("Sent update-prev RPC to next node.")
 
-        send_chat(node, f"{node.username} has joined...")
+        #send_chat(node, f"{node.username} has joined...")
         node.no_neighbor = False
     except Exception as e:
         LOG.error(f"Failed to join ring {next_node_address}: {e}")
