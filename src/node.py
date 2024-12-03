@@ -92,19 +92,18 @@ def join_node(node: Chatnode, next_node_address: str) -> bool:
         send_rpc(node.socket_next, rpc)
         LOG.info("Sent update-prev RPC to next node.")
 
-        if node.no_neighbor == True:
-            try:
-                rpc = json.dumps({
-                    "method": "new-msg",
-                    "author": "CLUSTER",
-                    "channel": "system",
-                    "user": node.username,
-                    "content": f"{node.username} has joined..."
-                })
-                send_rpc(node.socket_next, rpc)
-                LOG.info(f"Sent {node.username} join message")
-            except Exception as e:
-                LOG.error(f"Failed to send join message: {e}")
+        try:
+            rpc = json.dumps({
+                "method": "new-msg",
+                "author": "CLUSTER",
+                "channel": "system",
+                "user": node.username,
+                "content": f"{node.username} has joined..."
+            })
+            send_rpc(node.socket_next, rpc)
+            LOG.info(f"Sent {node.username} join message")
+        except Exception as e:
+            LOG.error(f"Failed to send join message: {e}")
 
         node.no_neighbor = False
     except Exception as e:
