@@ -11,7 +11,7 @@ def main():
     try:
         listener_thread = threading.Thread(target=chatnode.start_listening, daemon=True)
         listener_thread.start()
-        chatnode.messages = [("SYSTEM", f"you are listening on {chatnode.addr}")]
+        chatnode.messages = [("SYSTEM", "system", f"you are listening on {chatnode.addr}")]
 
         print_messages(chatnode)
     except KeyboardInterrupt:

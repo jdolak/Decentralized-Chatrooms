@@ -63,9 +63,7 @@ def perform_tx(data, node, msg:bytes):
     try:
         if data["method"] == "new-msg":
             LOG.info(f"Recieved new-msg : {data}")
-            if data["user"] != node.username:
-                node.messages.append((data["user"], data["content"]))
-            pass_along(data, node, msg)
+            new_msg(data, node, msg)
 
         elif data["method"] == "update-prev":
             LOG.info(f"Recieved update-prev rpc : {data}")
@@ -116,8 +114,8 @@ def receive_rpc(c_socket)->bytes:
     return b''.join(chunks)
 
 def pass_along(data, node, msg:bytes):
-    
-    if data["method"] == "new-msg" and data["user"] != node.username:
+ 
+    if data["user"] != node.username:
         msg = msg.decode('utf-8')
         send_rpc(node.socket_next, msg)
 
@@ -175,6 +173,12 @@ def new_prev(data, node):
     node.socket_prev_c = node.socket_curr_c
     node.prev_user = data["user"]
     LOG.info(f"Previous node now set to {node.prev_user}")
+
+def new_msg(data, node, msg):
+    if data["user"] != node.username:
+        node.messages.append((data["author"], data["channel"], data["content"]))
+    pass_along(data, node, msg)
+
  
     
 

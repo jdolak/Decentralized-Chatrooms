@@ -36,7 +36,7 @@ def _print_messages(stdscr: curses.window, node: Chatnode):
             start = len(messages) - h + 4
 
         for n, i in enumerate(range(start, len(messages))):
-            out = f'{messages[i][0]} : {messages[i][1]}'
+            out = f'[{messages[i][1]}] {messages[i][0]} : {messages[i][2]}'
             win.addstr(n + 1, 1, out)
 
         win.refresh()
@@ -65,7 +65,7 @@ def _simulation_user(messages):
         messages (list): List of messages.
     """
     while True:
-        messages.append(("Lang", "chat?"))
+        messages.append(("Lang", "general", "chat?"))
         time.sleep(2)
 
 def take_user_input(stdscr: curses.window, win: curses.window, node: Chatnode):
@@ -85,20 +85,20 @@ def take_user_input(stdscr: curses.window, win: curses.window, node: Chatnode):
 
         msg = stdscr.getstr().decode()
         if msg.startswith('/'):
-            messages.append(("COMMAND", msg))
+            messages.append(("COMMAND", "system", msg))
             win.refresh()
             if not parse_command(node, msg):
-                messages.append(("SYSTEM", "SUCCESS"))
+                messages.append(("SYSTEM", "system", "SUCCESS"))
             else:
-                messages.append(("SYSTEM", "ERROR : Failed to join"))
+                messages.append(("SYSTEM", "system", "ERROR : Failed to join"))
 
         else:
             try:
                 send_chat(node, msg)
-                messages.append((node.username, msg))
+                messages.append((node.username, node.channel_curr, msg))
             except Exception as e:
-                messages.append((node.username, msg))
-                messages.append(("ERROR", str(e)))
+                messages.append((node.username, node.channel_curr, msg))
+                messages.append(("ERROR", "system", str(e)))
                 LOG.warning(e)
 
         stdscr.refresh()
@@ -121,7 +121,4 @@ def parse_command(node: Chatnode, msg: str) -> bool:
     return False
 
 if __name__ == '__main__':
-    messages = [("Jachob", "hello there"), ("Jachob", "test1"), ("Jachob", "test2")]
-    node = Chatnode("Jachob")
-    node.messages = messages
-    print_messages(node)
+    pass
