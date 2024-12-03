@@ -6,6 +6,9 @@ from tools import DEBUG, LOG
 from files import log_transaction
 from socket import socket
 
+class socketTimout(Exception):
+    pass
+
 
 def send_rpc(c_socket, msg):
     """
@@ -23,9 +26,10 @@ def send_rpc(c_socket, msg):
         while totalsent < msg_len:
             sent = c_socket.send(msg[totalsent:])
             if sent == 0:
+                LOG.error("Socket connection broken")
                 raise RuntimeError("Socket connection broken")
             totalsent += sent
-    except socket.timeout:
+    except socketTimout:
         LOG.error("RPC send timed out.")
     except Exception as e:
         LOG.error(f"Error sending RPC: {e}")
@@ -35,8 +39,6 @@ def send_rpc(c_socket, msg):
 
 def parse_rpc(msg:bytes, node, sock:socket):
 
-    msg_arr = node.messages
-
     if not msg:
         return 0
 
@@ -44,11 +46,12 @@ def parse_rpc(msg:bytes, node, sock:socket):
     data = json.loads(data)
 
     try:
-        log_transaction(data, msg_arr)
+        #log_transaction(data, msg_arr)
+        pass
     except Exception as e:
         LOG.error(f"logging error:\n{e}")
 
-    response = perform_tx(data, msg_arr)
+    response = perform_tx(data, node)
 
     #send_rpc(sock, json.dumps(response))
     
@@ -56,12 +59,12 @@ def parse_rpc(msg:bytes, node, sock:socket):
 
 def perform_tx(data, node):
 
-    msg_arr = node.messages
+    result = "Error"
 
     try:
-        match data["method"]:
-            case "new-msg":
-                result =  msg_arr.append((data["user"], data["content"]))
+        if data["method"] == "new-msg":
+            node.messages.append((data["user"], data["content"]))
+            result = "success"
     except Exception as e:
         LOG.error(f"Something went wrong:\n{e}")
         response = data

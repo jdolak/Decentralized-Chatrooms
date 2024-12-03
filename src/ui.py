@@ -22,7 +22,7 @@ def _print_messages(stdscr: curses.window, node: Chatnode):
     curses.curs_set(False)
 
     threading.Thread(target=take_user_input, args=(stdscr, win, node), daemon=True).start()
-    simulation_user(messages)
+    #simulation_user(messages)
 
     while True:
         get_new_messages(node)
@@ -89,6 +89,9 @@ def take_user_input(stdscr: curses.window, win: curses.window, node: Chatnode):
             win.refresh()
             if not parse_command(node, msg):
                 messages.append(("SYSTEM", "SUCCESS"))
+            else:
+                messages.append(("SYSTEM", "ERROR : Failed to join"))
+
         else:
             try:
                 send_chat(node, msg)

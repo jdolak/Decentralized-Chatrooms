@@ -20,6 +20,8 @@ class Chatnode:
 
         self.username = username
         self.messages = []
+        self.addr = f"{socket.gethostname()}:{self.socket_prev_port}"
+
 
     def start_listening(self):
         """
@@ -32,9 +34,9 @@ class Chatnode:
             conn, addr = self.socket_prev.accept()
             LOG.info(f"Connection accepted from {addr}")
             try:
-                data = receive_rpc(conn)
-                if data:
-                    parse_rpc(data, self, conn)
+                while (data := receive_rpc(conn)):
+                    if data:
+                        parse_rpc(data, self, conn)
             except Exception as e:
                 LOG.error(f"Error handling connection: {e}")
 
@@ -45,6 +47,7 @@ def join_node(node: Chatnode, next_node_address: str) -> bool:
     """
     try:
         next_host, next_port = next_node_address.split(":")
+        LOG.info((next_host, int(next_port)))
         node.socket_next.connect((next_host, int(next_port)))
         LOG.info(f"{node.username} connected to next node at {next_host}:{next_port}")
 
@@ -57,9 +60,9 @@ def join_node(node: Chatnode, next_node_address: str) -> bool:
         send_rpc(node.socket_next, rpc)
         LOG.info("Sent update-prev RPC to next node.")
     except Exception as e:
-        LOG.error(f"Failed to join ring: {e}")
-        return False
-    return True
+        LOG.error(f"Failed to join ring {next_node_address}: {e}")
+        return 1
+    return 0
 
 
 def send_chat(node: Chatnode, chat_msg: str):
@@ -85,7 +88,8 @@ def get_new_messages(node: Chatnode):
     try:
         parse_rpc(receive_rpc(node.socket_prev), node, node.socket_prev)
     except Exception as e:
-        LOG.error(f"Error receiving new messages: {e}")
+        #LOG.error(f"Error receiving new messages: {e}")
+        pass
 
 
 if __name__ == '__main__':
