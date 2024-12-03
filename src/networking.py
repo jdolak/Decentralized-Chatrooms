@@ -51,20 +51,33 @@ def parse_rpc(msg:bytes, node, sock:socket):
     except Exception as e:
         LOG.error(f"logging error:\n{e}")
 
-    response = perform_tx(data, node)
+    response = perform_tx(data, node, msg)
 
     #send_rpc(sock, json.dumps(response))
     
     return 0
 
-def perform_tx(data, node):
+def perform_tx(data, node, msg:bytes):
 
     result = "Error"
 
     try:
         if data["method"] == "new-msg":
-            node.messages.append((data["user"], data["content"]))
+            if data["user"] != node.username:
+                node.messages.append((data["user"], data["content"]))
+            pass_along(data, node, msg)
             result = "success"
+        if data["method"] == "update-prev":
+            try:
+                host = data["host"]
+                port = data["listing_port"]
+                if node.no_neighbor:
+                    node.socket_next.connect((host,int(port)))
+                    node.no_neighbor = False
+                    LOG.info(f"added {(host,int(port))} as next node")
+            except Exception as e:
+                LOG.error(f"Failed to set {(host,int(port))} as next node : {e}")
+
     except Exception as e:
         LOG.error(f"Something went wrong:\n{e}")
         response = data
@@ -99,6 +112,12 @@ def receive_rpc(c_socket)->bytes:
         chunks.append(chunk)
         bytes_recd = bytes_recd + len(chunk)
     return b''.join(chunks)
+
+def pass_along(data, node, msg:bytes):
+    
+    if data["method"] == "new-msg" and data["user"] != node.username:
+        msg = msg.decode('utf-8')
+        send_rpc(node.socket_next, msg)
 	
 
 if __name__ == '__main__':

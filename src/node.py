@@ -20,7 +20,9 @@ class Chatnode:
 
         self.username = username
         self.messages = []
+        self.hostname = socket.gethostname() 
         self.addr = f"{socket.gethostname()}:{self.socket_prev_port}"
+        self.no_neighbor = True
 
 
     def start_listening(self):
@@ -33,6 +35,7 @@ class Chatnode:
         while True:
             conn, addr = self.socket_prev.accept()
             LOG.info(f"Connection accepted from {addr}")
+
             try:
                 while (data := receive_rpc(conn)):
                     if data:
@@ -54,11 +57,14 @@ def join_node(node: Chatnode, next_node_address: str) -> bool:
         # Notify the next node to update its predecessor
         rpc = json.dumps({
             "method": "update-prev",
-            "host": "localhost",  # Assuming localhost; adjust as needed
-            "port": node.socket_prev_port
+            "host": node.hostname,
+            "listing_port": node.socket_prev_port,
+            "username" : node.username
         })
         send_rpc(node.socket_next, rpc)
+        send_chat(node, f"{node.username} has joined...")
         LOG.info("Sent update-prev RPC to next node.")
+        node.no_neighbor = False
     except Exception as e:
         LOG.error(f"Failed to join ring {next_node_address}: {e}")
         return 1
