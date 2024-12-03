@@ -1,5 +1,8 @@
 clear-errs:
-	rm ./*errors.log
+	@echo "Removing logs"
+	-@rm ./*errors.log
+	-@rm ./logs/*errors.log
+	-@rm ./src/logs/*errors.log
 
 kill:
 	pgrep -u jdolak python3

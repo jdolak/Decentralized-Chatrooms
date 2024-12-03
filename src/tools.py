@@ -17,7 +17,7 @@ else:
 
 logging.basicConfig(level=logging.DEBUG, 
                     format='%(asctime)s - %(levelname)s - %(funcName)s() - %(message)s',
-                    filename=f"{NAME}-errors.log",
+                    filename=f"./logs/{NAME}-errors.log",
                     encoding="utf-8",
                     filemode="a")
 

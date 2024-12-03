@@ -15,10 +15,10 @@ def main():
     print(f"host : {host}")
     print(f"n : {sys.argv[1]}")
     
-
-    command = f'for i in {{1..{sys.argv[1]}}}; do bash -c "python3 ./src/main.py --headless=True --username=test-$i --join={host}" & done'
-    print(command)
-    subprocess.Popen(command, shell=True, stdout=subprocess.PIPE, stderr=subprocess.PIPE)
+    for i in range(int(sys.argv[1])-1):
+        command = f"python3 ./src/main.py --headless=True --username={i} --join={host}"
+        print(command)
+        subprocess.Popen(command, shell=True, stdout=subprocess.PIPE, stderr=subprocess.PIPE)
 
     while True:
         pass
