@@ -145,5 +145,24 @@ def parse_command(node: Chatnode, msg: str) -> bool:
             return f"Now on channel {args[1]}"
     return False
 
+def headless(node : Chatnode, args):
+    messages = node.messages
+
+    print(f"you are listening on {node.addr}")
+
+    if args.join:
+        join_node(node, args.join)
+
+    while True:
+        get_new_messages(node)
+        h = 50
+        start = 0
+        if len(messages) >= h - 4:
+            start = len(messages) - h + 4
+
+        for n, i in enumerate(range(start, len(messages))):
+            out = f'[{messages[i][1]}] {messages[i][0]} : {messages[i][2]}'
+        time.sleep(0.25)
+
 if __name__ == '__main__':
     pass

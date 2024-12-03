@@ -1,8 +1,8 @@
 #!/usr/bin/env python3
 
 from node import Chatnode
-from ui import print_messages
-from tools import NAME
+from ui import print_messages, headless
+from tools import NAME, ARGS
 import threading
 
 chatnode = Chatnode(NAME)
@@ -13,7 +13,12 @@ def main():
         listener_thread.start()
         chatnode.messages = [("SYSTEM", "system", f"you are listening on {chatnode.addr}")]
 
-        print_messages(chatnode)
+        if not ARGS.headless:
+            print_messages(chatnode)
+        else:
+            threading.Thread(target=headless, args=(chatnode, ARGS), daemon=True).start()
+            while(True):
+                pass
     except KeyboardInterrupt:
         exit(0)
 	

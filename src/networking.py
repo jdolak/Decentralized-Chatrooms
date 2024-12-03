@@ -76,6 +76,12 @@ def perform_tx(data, node, msg:bytes):
         elif data["method"] == "new-prev":
             LOG.info(f"Recieved new-prev rpc : {data}")
             new_prev(data, node)
+        elif data["method"] == "rollcall-checkin":
+            LOG.info(f"Recieved rollcall-checkin rpc : {data}")
+            rollcall_checkin(data, node)
+        elif data["method"] == "rollcall-results":
+            LOG.info(f"Recieved rollcall-results rpc : {data}")
+            rollcall_results(data, node, msg)
 
         else:
             LOG.warning(f"Recieved unknown rpc : {data}")
@@ -174,12 +180,51 @@ def new_prev(data, node):
     node.prev_user = data["user"]
     LOG.info(f"Previous node now set to {node.prev_user}")
 
+    start_rollcall(data, node)
+
 def new_msg(data, node, msg):
     if data["user"] != node.username and data["channel"] in node.subscribed_channels:
         node.messages.append((data["author"], data["channel"], data["content"]))
     pass_along(data, node, msg)
 
- 
+def start_rollcall(data, node):
+    try:
+        rpc = json.dumps({
+            "method": "rollcall-checkin",
+            "user": node.username,
+            "attendance": [[node.username, node.hostname, node.socket_prev_s_port],]
+        })
+        send_rpc(node.socket_next, rpc)
+        LOG.info("Sending rollcall")
+    except Exception as e:
+        LOG.error(f"Error starting rollcall : {e}")
+
+def rollcall_checkin(data, node):
+    if data["user"] == node.username:
+        try:
+            rpc = json.dumps({
+                "method": "rollcall-results",
+                "user": data["user"],
+                "attendance": data["attendance"]
+            })
+            send_rpc(node.socket_next, rpc)
+            LOG.debug(f"sending results : {rpc}")
+        except Exception as e:
+            LOG.error(f"Error starting rollcall result: {e}") 
+    else:
+        try:
+            data["attendance"].append([node.username, node.hostname, node.socket_prev_s_port]) 
+            LOG.debug(f"sending checkin : {data}")
+            send_rpc(node.socket_next, json.dumps(data))
+        except Exception as e:
+            LOG.error(f"error passing attendance along : {e}")
+
+def rollcall_results(data, node, msg):
+    node.node_directory = data["attendance"]
+    LOG.debug(f"updated directory to : {node.node_directory}")
+    pass_along(data, node, msg)
+
+
     
 
 if __name__ == '__main__':
