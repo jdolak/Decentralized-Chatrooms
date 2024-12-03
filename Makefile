@@ -1,2 +1,2 @@
 clear-errs:
-	echo "" > ./*errors.log
+	rm ./*errors.log

@@ -53,40 +53,38 @@ def parse_rpc(msg:bytes, node, sock:socket):
 
     response = perform_tx(data, node, msg)
 
-    #send_rpc(sock, json.dumps(response))
+    if response:
+        send_rpc(sock, json.dumps(response))
     
     return 0
 
 def perform_tx(data, node, msg:bytes):
 
-    result = "Error"
-
     try:
         if data["method"] == "new-msg":
+            LOG.info(f"Recieved new-msg : {data}")
             if data["user"] != node.username:
                 node.messages.append((data["user"], data["content"]))
             pass_along(data, node, msg)
-            result = "success"
-        if data["method"] == "update-prev":
-            try:
-                host = data["host"]
-                port = data["listing_port"]
-                if node.no_neighbor:
-                    node.socket_next.connect((host,int(port)))
-                    node.no_neighbor = False
-                    LOG.info(f"added {(host,int(port))} as next node")
-            except Exception as e:
-                LOG.error(f"Failed to set {(host,int(port))} as next node : {e}")
+
+        elif data["method"] == "update-prev":
+            LOG.info(f"Recieved update-prev rpc : {data}")
+            node.socket_prev_c = node.socket_prev_curr
+            update_prev(data, node)
+
+        elif data["method"] == "update-next":
+            LOG.info(f"Recieved update-next rpc : {data}")
+    
+        else:
+            LOG.warning(f"Recieved unknown rpc : {data}")
+
 
     except Exception as e:
         LOG.error(f"Something went wrong:\n{e}")
         response = data
         response["result"] = "Error"
-    else:
-        response = data
-        response["result"] = result
 
-    return response
+    return 0
 
 
 def receive_rpc(c_socket)->bytes:
@@ -119,6 +117,29 @@ def pass_along(data, node, msg:bytes):
         msg = msg.decode('utf-8')
         send_rpc(node.socket_next, msg)
 	
+def update_prev(data, node):
+    try:
+        host = data["host"]
+        port = data["listing_port"]
+
+        if node.no_neighbor:
+            node.socket_next.connect((host,int(port)))
+            node.no_neighbor = False
+            LOG.info(f"added {(host,int(port))} as next node")
+        else:
+            LOG.info(f"Attempting to send update-next message to {node.socket_prev_c.getsockname()}")
+            rpc = json.dumps({
+                "method": "update-next",
+                "user": node.username,
+                "host": host,
+                "port": port
+            })
+            send_rpc(node.socket_prev_c, rpc)
+            LOG.info(f"send update-next message to {node.socket_prev_c.getsockname()}")
+        
+    except Exception as e:
+        LOG.error(f"Failed to set {(host,int(port))} as next node : {e}")
+
 
 if __name__ == '__main__':
     pass
