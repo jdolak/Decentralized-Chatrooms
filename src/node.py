@@ -35,6 +35,10 @@ class Chatnode:
         self.subscribed_channels = set(["general", "system"])
 
         self.node_directory = []
+        self.test_set = dict()
+        self.dups = 0
+        self.lost = 0
+        self.test_order = []
 
     def start_listening(self):
         """

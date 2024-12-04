@@ -1,3 +1,5 @@
+all: reset
+
 clear-errs:
 	@echo "Removing logs"
 	-@rm ./*errors.log
@@ -5,5 +7,7 @@ clear-errs:
 	-@rm ./src/logs/*errors.log
 
 kill:
-	pgrep -u jdolak python3
-	pkill -u jdolak python3
+	-pgrep -u jdolak python3
+	-pkill -u jdolak python3
+
+reset: kill clear-errs
