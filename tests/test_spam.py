@@ -16,8 +16,7 @@ def main():
     print(f"n : {sys.argv[1]}")
     
 
-    command = f'for i in {{1..{sys.argv[1]}}}; do bash -c "python3 ./src/main.py --headless=True --username=test-join-$i --join={host}" & done; wait'
-    #command = f'for i in {{1..{sys.argv[1]}}}; do bash -c "python3 ./src/main.py --headless=True --username=test-$i --join={host} --spam={SPAM}" & done; wait'
+    command = f'for i in {{1..{sys.argv[1]}}}; do bash -c "python3 ./src/main.py --headless=True --username=test-spam-$i --join={host} --spam={SPAM}" & done; wait'
     print(command)
     result = subprocess.run(command, shell=True, capture_output=True, text=True)
     print(result.stdout)

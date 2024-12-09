@@ -6,7 +6,7 @@ DEBUG = False
 parser = argparse.ArgumentParser(prog='p2p chat')
 parser.add_argument('--headless', type=bool, default=False, required=False)
 parser.add_argument('--join', type=str, default=0, required=False)
-parser.add_argument('--spam', type=bool, default=False, required=False)
+parser.add_argument('--spam', type=float, default=0, required=False)
 parser.add_argument('--username', type=str, default=0, required=False)
 ARGS = parser.parse_args()
 

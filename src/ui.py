@@ -24,13 +24,11 @@ def _print_messages(stdscr: curses.window, node: Chatnode):
     #simulation_user(messages)
 
     while True:
-        get_new_messages(node)
+        #get_new_messages(node)
 
         win.clear()
         win.border()
         curses.echo()
-
-
 
         start = 0
         if len(messages) >= h - 4:
@@ -52,23 +50,7 @@ def print_messages(node: Chatnode):
     """
     curses.wrapper(partial(_print_messages, node=node))
 
-def simulation_user(messages):
-    """
-    Starts a background thread simulating another user sending messages.
-    Args:
-        messages (list): List of messages.
-    """
-    threading.Thread(target=_simulation_user, args=(messages,), daemon=True).start()
 
-def _simulation_user(messages):
-    """
-    Simulates another user sending messages periodically.
-    Args:
-        messages (list): List of messages.
-    """
-    while True:
-        messages.append(("Lang", "general", "chat?"))
-        time.sleep(2)
 
 def take_user_input(stdscr: curses.window, win: curses.window, node: Chatnode):
     """

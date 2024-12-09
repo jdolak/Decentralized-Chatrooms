@@ -5,6 +5,7 @@ import json
 from tools import DEBUG, LOG
 from files import log_transaction
 import socket
+import time
 
 class socketTimout(Exception):
     pass
@@ -185,6 +186,8 @@ def new_prev(data, node):
 def new_msg(data, node, msg):
     if data["user"] != node.username and data["channel"] in node.subscribed_channels:
         node.messages.append((data["author"], data["channel"], data["content"]))
+    else:
+        spam_test(data,node)
     pass_along(data, node, msg)
 
 def start_rollcall(data, node):
@@ -224,6 +227,17 @@ def rollcall_results(data, node, msg):
     LOG.debug(f"updated directory to : {node.node_directory}")
     pass_along(data, node, msg)
 
+def spam_test(data, node):
+    if f"{node.username}-latency" in data["content"]:
+        try:
+            _, num, stime = data["content"].split(':')
+            if num in node.test_set:
+                node.dups = node.dups + 1
+            else:
+                node.test_set[num] = time.time() - float(stime)
+                #LOG.debug(f"timestamps={node.username}:{time.time()}:{stime}")
+        except Exception as e:
+            LOG.warning(f"could not parse : {data["content"]} : {e}")
 
     
 
