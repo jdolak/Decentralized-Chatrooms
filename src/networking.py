@@ -17,15 +17,15 @@ def send_rpc(node, c_socket, msg):
     """
     msg_len = len(msg)
     totalsent = 0
-    msg = bytes(f'{msg_len:09d}' + msg, 'utf-8')
+    payload = bytes(f'{msg_len:09d}' + msg, 'utf-8')
     #c_socket.settimeout(5)  # Timeout after 5 seconds
 
 
-    LOG.debug(f"{c_socket.fileno()} : {msg}")
+    LOG.debug(f"{c_socket.fileno()} : {payload}")
 
     try:
         while totalsent < msg_len:
-            sent = c_socket.send(msg[totalsent:])
+            sent = c_socket.send(payload[totalsent:])
             if sent == 0:
                 LOG.error("Socket connection broken")
                 raise RuntimeError("Socket connection broken")
@@ -34,8 +34,10 @@ def send_rpc(node, c_socket, msg):
         LOG.error("RPC send timed out.")
         raise RuntimeError("Send failed")
     except BrokenPipeError:
-        find_node(node)
-        raise RuntimeError("Send failed")
+        if not find_node(node):
+            resend_after_fail(node, msg)
+        else:
+            raise RuntimeError("Send failed")
     except Exception as e:
         LOG.error(f"Error sending RPC: {e}")
         raise RuntimeError("Send failed")
@@ -258,6 +260,8 @@ def spam_test(data, node):
             LOG.warning(f"could not parse : {data["content"]} : {e}")
 
 def find_node(node):
+
+    LOG.warning(f"Failed to connect to next node, starting failure handeling...")
     
     self_index = -1
     i = 0
@@ -324,6 +328,14 @@ def join_node(node, next_node_address: str) -> bool:
         LOG.error(f"Failed to join ring {next_node_address}: {e}")
         return 1
     return 0
+
+def resend_after_fail(node, msg):
+
+    data = json.loads(msg)
+
+    if data["method"] == "new-msg":
+        send_rpc(node, node.socket_next, msg)
+
     
 
 if __name__ == '__main__':

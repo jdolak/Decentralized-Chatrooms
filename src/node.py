@@ -29,13 +29,18 @@ class Chatnode:
         self.addr = f"{socket.gethostname()}:{self.socket_prev_s_port}"
         self.no_neighbor = True
 
+        # Debug values, not used for operation
         self.prev_user = ""
         self.next_user = ""
 
+        # Channel values
         self.channel_curr = "general"
         self.subscribed_channels = set(["general", "system"])
 
+        # Failure handeling
         self.node_directory = []
+
+        # Testing values
         self.test_set = dict()
         self.dups = 0
         self.lost = 0
