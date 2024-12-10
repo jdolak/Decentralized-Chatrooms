@@ -3,7 +3,7 @@
 import json
 import socket
 from tools import LOG
-from networking import send_rpc, receive_rpc, parse_rpc
+from networking import send_rpc, receive_rpc, parse_rpc, join_node
 import select
 
 
@@ -76,48 +76,6 @@ class Chatnode:
                     LOG.error(f"Error handling connection: {e}")
 
 
-def join_node(node: Chatnode, next_node_address: str) -> bool:
-    """
-    Connect the current node to the next node in the ring.
-    """
-    try:
-        next_host, next_port = next_node_address.split(":")
-        LOG.info((next_host, int(next_port)))
-        node.socket_next.connect((next_host, int(next_port)))
-        LOG.info(f"{node.username} connected to next node at {next_host}:{next_port}")
-
-        node.socket_prev_incoming.insert(0, node.socket_next)
-
-        # Notify the next node to update its predecessor
-        rpc = json.dumps({
-            "method": "update-prev",
-            "host": node.hostname,
-            "listing_port": node.socket_prev_s_port,
-            "user" : node.username
-        })
-        send_rpc(node.socket_next, rpc)
-        LOG.info("Sent update-prev RPC to next node.")
-
-        try:
-            rpc = json.dumps({
-                "method": "new-msg",
-                "author": "CLUSTER",
-                "channel": "system",
-                "user": node.username,
-                "content": f"{node.username} has joined..."
-            })
-            send_rpc(node.socket_next, rpc)
-            LOG.info(f"Sent {node.username} join message")
-        except Exception as e:
-            LOG.error(f"Failed to send join message: {e}")
-
-        node.no_neighbor = False
-    except Exception as e:
-        LOG.error(f"Failed to join ring {next_node_address}: {e}")
-        return 1
-    return 0
-
-
 def send_chat(node: Chatnode, chat_msg: str):
     """
     Sends a chat message to the next node in the ring.
@@ -130,7 +88,7 @@ def send_chat(node: Chatnode, chat_msg: str):
             "channel": node.channel_curr,
             "content": chat_msg
         })
-        send_rpc(node.socket_next, rpc)
+        send_rpc(node, node.socket_next, rpc)
         LOG.info(f"Message sent from {node.username}: {chat_msg}")
     except Exception as e:
         LOG.error(f"Failed to send message: {e}")

@@ -4,7 +4,8 @@ import curses
 import threading
 import time
 
-from node import join_node, send_chat, Chatnode, get_new_messages
+from node import send_chat, Chatnode, get_new_messages
+from networking import join_node
 from functools import partial
 from tools import LOG
 
