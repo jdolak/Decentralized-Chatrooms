@@ -1,6 +1,6 @@
 #!/usr/bin/env python3
 
-from node import Chatnode
+from node import Chatnode, catalog_register
 from ui import print_messages, headless, send_chat
 from tools import NAME, ARGS, LOG
 import threading
@@ -13,6 +13,10 @@ def main():
         listener_thread = threading.Thread(target=chatnode.start_listening, daemon=True)
         listener_thread.start()
         chatnode.messages = [("SYSTEM", "system", f"you are listening on {chatnode.addr}")]
+
+        if ARGS.advertise:
+            catalog_thread = threading.Thread(target=catalog_register, args=(chatnode,), daemon=True).start()
+
 
         if not ARGS.headless:
             print_messages(chatnode)
