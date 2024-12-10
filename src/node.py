@@ -2,9 +2,10 @@
 
 import json
 import socket
-from tools import LOG
+from tools import LOG, ARGS
 from networking import send_rpc, receive_rpc, parse_rpc, join_node
 import select
+import time
 
 
 class Chatnode:
@@ -28,13 +29,18 @@ class Chatnode:
         self.addr = f"{socket.gethostname()}:{self.socket_prev_s_port}"
         self.no_neighbor = True
 
+        # Debug values, not used for operation
         self.prev_user = ""
         self.next_user = ""
 
+        # Channel values
         self.channel_curr = "general"
         self.subscribed_channels = set(["general", "system"])
 
+        # Failure handeling
         self.node_directory = []
+
+        # Testing values
         self.test_set = dict()
         self.dups = 0
         self.lost = 0
@@ -104,20 +110,30 @@ def get_new_messages(node: Chatnode):
         #LOG.error(f"Error receiving new messages: {e}")
         pass
 
+def catalog_register(node):
+    try:
+        info = dict()
+        info["type"] = "distsys-project"
+        info["owner"] = "jdolak"
+        info["port"] = node.socket_prev_s_port
+        if ARGS.advertise != True:
+            info["project"] = ARGS.advertise
+        else:
+            info["project"] = f"p2p-chat"
+
+        info["user"] = node.username
+
+        addr, port = ARGS.nameserver.split(':')
+
+        sock = socket.socket(socket.AF_INET, socket.SOCK_DGRAM)
+        data = bytes(json.dumps(info),'utf-8')
+
+        while True:
+            sock.sendto(data, (addr, int(port)))
+            LOG.info(f"Sent catalog register : {info} to {addr, port}")
+            time.sleep(60)
+    except Exception as e:
+        LOG.error(f"Failed to send catalog register : {e}")
 
 if __name__ == '__main__':
-    # Example initialization
-    username = input("Enter username: ")
-    chatnode = Chatnode(username)
-
-    # Start listening in a separate thread or process
-    import threading
-    listener_thread = threading.Thread(target=chatnode.start_listening, daemon=True)
-    listener_thread.start()
-
-    # Connect to the ring and start interacting
-    next_node = input("Enter next node address (host:port): ")
-    if join_node(chatnode, next_node):
-        LOG.info(f"{username} successfully joined the ring.")
-    else:
-        LOG.error(f"Failed to join the ring. Exiting.")
+    pass
