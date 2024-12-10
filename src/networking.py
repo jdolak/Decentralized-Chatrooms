@@ -20,8 +20,8 @@ def send_rpc(node, c_socket, msg):
     msg = bytes(f'{msg_len:09d}' + msg, 'utf-8')
     #c_socket.settimeout(5)  # Timeout after 5 seconds
 
-    if DEBUG:
-        LOG.info(f"{c_socket.fileno()} : {msg}")
+
+    LOG.debug(f"{c_socket.fileno()} : {msg}")
 
     try:
         while totalsent < msg_len:
@@ -32,13 +32,17 @@ def send_rpc(node, c_socket, msg):
             totalsent += sent
     except socketTimout:
         LOG.error("RPC send timed out.")
+        raise RuntimeError("Send failed")
     except BrokenPipeError:
         find_node(node)
+        raise RuntimeError("Send failed")
     except Exception as e:
         LOG.error(f"Error sending RPC: {e}")
+        raise RuntimeError("Send failed")
     #finally:
     #    if type(c_socket) != int:
     #        c_socket.settimeout(None)
+    return 0
 
 
 def parse_rpc(msg:bytes, node, sock:socket.socket):
@@ -139,13 +143,21 @@ def update_prev(data, node):
             node.socket_next.connect((host,int(port)))
             node.no_neighbor = False
             node.next_user = data["user"]
+            node.socket_prev_incoming.insert(0, node.socket_next)
+
+            rpc = json.dumps({
+                "method": "new-prev",
+                "user" : node.username
+            })
+            send_rpc(node, node.socket_next, rpc)
+
             LOG.info(f"added {(host,int(port))} as next node")
         except Exception as e:
             LOG.error(f"Failed to set {(host,int(port))} as next node : {e}")
 
     else:
         try:
-            LOG.info(f"Attempting to send update-next message")
+            LOG.info(f"Attempting to send update-next message to {node.socket_prev_c}")
             rpc = json.dumps({
                 "method": "update-next",
                 "user": data["user"],
@@ -153,9 +165,10 @@ def update_prev(data, node):
                 "port": port
             })
             send_rpc(node, node.socket_prev_c, rpc)
-            LOG.info(f"sent : {rpc}")
+            LOG.info(f"sent update-next: {rpc}")
         except Exception as e:
             LOG.error(f"Failed to set previous node : {e}")
+    LOG.debug(f"socket prev client set to : {node.socket_curr_c} from {node.socket_prev_c}")
     node.socket_prev_c = node.socket_curr_c
     node.prev_user = data["user"]
 
@@ -167,7 +180,9 @@ def update_next(data, node):
         LOG.error(f"Error closing and creating new socket : {e}")
     
     try:
+        LOG.debug(f"Attempting to send new-prev to {data["host"]}:{data["port"]}")
         node.socket_next.connect((data["host"], int(data["port"])))
+        node.socket_prev_incoming.insert(0, node.socket_next)
         rpc = json.dumps({
                 "method": "new-prev",
                 "user" : node.username
@@ -259,11 +274,11 @@ def find_node(node):
                     LOG.info(f"Trying to join node {node.node_directory[i][0]} at {address}")
                     if not join_node(node, address):
                         return 0
-                except (ConnectionError, ConnectionRefusedError) as e:
+                except Exception as e:
                     LOG.warning(f"Failed to join node {node.node_directory[i][0]} at {address}")
-                    continue
+                    
         i = i + 1
-        i = i % len(node.node_directory[i])
+        i = i % len(node.node_directory)
 
 def join_node(node, next_node_address: str) -> bool:
     """
@@ -273,9 +288,10 @@ def join_node(node, next_node_address: str) -> bool:
         next_host, next_port = next_node_address.split(":")
         LOG.info((next_host, int(next_port)))
 
-        #node.socket_next.close()
+        node.socket_next.close()
         node.socket_next = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
         node.socket_next.connect((next_host, int(next_port)))
+        node.next_user = f"{next_host}:{next_port}" 
         LOG.info(f"{node.username} connected to next node at {next_host}:{next_port}")
 
         node.socket_prev_incoming.insert(0, node.socket_next)

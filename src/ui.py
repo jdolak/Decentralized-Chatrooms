@@ -105,8 +105,16 @@ def parse_command(node: Chatnode, msg: str) -> bool:
             return "ERROR : Failed to join"
         else:
             return f"SUCCESS : joined {args[2]}"
+        
+    elif args[0] == "join":
+        if join_node(node, args[1]):
+            return "ERROR : Failed to join"
+        else:
+            return f"SUCCESS : joined {args[1]}"
 
-    
+    if args[0] == "debug":
+       return f"previous node : {node.prev_user} | next node : {node.next_user}" 
+        
     elif args[0] == "sub":
         node.subscribed_channels.add(args[1])
         return f"SUCCESS : subscribed to channel {args[1]}"
