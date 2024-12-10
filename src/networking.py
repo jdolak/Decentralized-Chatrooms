@@ -20,7 +20,6 @@ def send_rpc(node, c_socket, msg):
     payload = bytes(f'{msg_len:09d}' + msg, 'utf-8')
     #c_socket.settimeout(5)  # Timeout after 5 seconds
 
-
     LOG.debug(f"{c_socket.fileno()} : {payload}")
 
     try:
@@ -46,7 +45,6 @@ def send_rpc(node, c_socket, msg):
     #        c_socket.settimeout(None)
     return 0
 
-
 def parse_rpc(msg:bytes, node, sock:socket.socket):
 
     if not msg:
@@ -65,8 +63,8 @@ def parse_rpc(msg:bytes, node, sock:socket.socket):
 
     if response:
         send_rpc(node, sock, json.dumps(response))
-    
     return 0
+
 
 def perform_tx(data, node, msg:bytes):
 
@@ -86,16 +84,17 @@ def perform_tx(data, node, msg:bytes):
         elif data["method"] == "new-prev":
             LOG.info(f"Recieved new-prev rpc : {data}")
             new_prev(data, node)
+
         elif data["method"] == "rollcall-checkin":
             LOG.info(f"Recieved rollcall-checkin rpc : {data}")
             rollcall_checkin(data, node)
+
         elif data["method"] == "rollcall-results":
             LOG.info(f"Recieved rollcall-results rpc : {data}")
             rollcall_results(data, node, msg)
 
         else:
             LOG.warning(f"Recieved unknown rpc : {data}")
-
 
     except Exception as e:
         LOG.error(f"Something went wrong:\n{e}")
@@ -108,7 +107,6 @@ def perform_tx(data, node, msg:bytes):
 def receive_rpc(c_socket)->bytes:
 
     msg = c_socket.recv(9)
-    
     if not len(msg):
         return 0
 
@@ -137,6 +135,7 @@ def pass_along(data, node, msg:bytes):
 
 	
 def update_prev(data, node):
+
     host = data["host"]
     port = data["listing_port"]
 
@@ -174,7 +173,9 @@ def update_prev(data, node):
     node.socket_prev_c = node.socket_curr_c
     node.prev_user = data["user"]
 
+
 def update_next(data, node):
+
     try:
         node.socket_next.close()
         node.socket_next = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
@@ -196,21 +197,27 @@ def update_next(data, node):
     except Exception as e:
         LOG.error(f"Error sending new-prev : {e}")
 
+
 def new_prev(data, node):
+
     node.socket_prev_c = node.socket_curr_c
     node.prev_user = data["user"]
     LOG.info(f"Previous node now set to {node.prev_user}")
 
     start_rollcall(data, node)
 
+
 def new_msg(data, node, msg):
+
     if data["user"] != node.username and data["channel"] in node.subscribed_channels:
         node.messages.append((data["author"], data["channel"], data["content"]))
     else:
         spam_test(data,node)
     pass_along(data, node, msg)
 
+
 def start_rollcall(data, node):
+    
     try:
         rpc = json.dumps({
             "method": "rollcall-checkin",
@@ -222,7 +229,9 @@ def start_rollcall(data, node):
     except Exception as e:
         LOG.error(f"Error starting rollcall : {e}")
 
+
 def rollcall_checkin(data, node):
+
     if data["user"] == node.username:
         try:
             rpc = json.dumps({
@@ -242,12 +251,16 @@ def rollcall_checkin(data, node):
         except Exception as e:
             LOG.error(f"error passing attendance along : {e}")
 
+
 def rollcall_results(data, node, msg):
+
     node.node_directory = data["attendance"]
     LOG.debug(f"updated directory to : {node.node_directory}")
     pass_along(data, node, msg)
 
+
 def spam_test(data, node):
+
     if f"{node.username}-latency" in data["content"]:
         try:
             _, num, stime = data["content"].split(':')
@@ -259,10 +272,10 @@ def spam_test(data, node):
         except Exception as e:
             LOG.warning(f"could not parse : {data["content"]} : {e}")
 
+
 def find_node(node):
 
     LOG.warning(f"Failed to connect to next node, starting failure handeling...")
-    
     self_index = -1
     i = 0
 
@@ -283,6 +296,7 @@ def find_node(node):
                     
         i = i + 1
         i = i % len(node.node_directory)
+
 
 def join_node(node, next_node_address: str) -> bool:
     """
@@ -329,14 +343,13 @@ def join_node(node, next_node_address: str) -> bool:
         return 1
     return 0
 
+
 def resend_after_fail(node, msg):
 
     data = json.loads(msg)
-
     if data["method"] == "new-msg":
         send_rpc(node, node.socket_next, msg)
 
-    
 
 if __name__ == '__main__':
     pass

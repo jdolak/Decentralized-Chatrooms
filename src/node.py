@@ -46,6 +46,7 @@ class Chatnode:
         self.lost = 0
         self.test_order = []
 
+
     def start_listening(self):
         """
         Start listening for incoming connections on the previous socket.
@@ -109,6 +110,7 @@ def get_new_messages(node: Chatnode):
     except Exception as e:
         #LOG.error(f"Error receiving new messages: {e}")
         pass
+
 
 def catalog_register(node):
     try:

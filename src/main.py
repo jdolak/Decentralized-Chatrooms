@@ -1,10 +1,12 @@
 #!/usr/bin/env python3
 
 from node import Chatnode, catalog_register
-from ui import print_messages, headless, send_chat
-from tools import NAME, ARGS, LOG
+from ui import print_messages, headless
+from tools import NAME, ARGS
+from benchmarking import test_latency
+
 import threading
-import time
+
 
 chatnode = Chatnode(NAME)
 
@@ -17,40 +19,15 @@ def main():
         if ARGS.advertise:
             catalog_thread = threading.Thread(target=catalog_register, args=(chatnode,), daemon=True).start()
 
-
         if not ARGS.headless:
             print_messages(chatnode)
         else:
             threading.Thread(target=headless, args=(chatnode, ARGS), daemon=True).start()
 
-            start = 0
-            last_len = 0
-            #time.sleep(5)
-            while(True):
-                if not ARGS.spam:
-                    length = len(set(map(lambda x:x[0], chatnode.node_directory)))
-                    if not start and length > 1:
-                        start = time.time()
-                    elif start and last_len < length:  
-                        print(length, time.time() - start )
-                        last_len = length
-                else:
-                    try:
-                        send_chat(chatnode, f"{chatnode.username}-latency:{start}:{time.time()}")
-                    except:
-                        pass
-                    start = start + 1
-                    time.sleep(ARGS.spam)
-
-                    if start >= 250:
-                        break
-
-            LOG.debug(f"average latency {chatnode.username}:  {sum(chatnode.test_set.values()) / len(chatnode.test_set.keys())}")
-            LOG.debug(f"dupicates {chatnode.username}: {chatnode.dups}")
+            test_latency(chatnode)
 
             while(True):
                 pass
-
 
     except KeyboardInterrupt:
         exit(0)

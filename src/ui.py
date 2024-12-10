@@ -9,6 +9,7 @@ from networking import join_node
 from functools import partial
 from tools import LOG
 
+
 def _print_messages(stdscr: curses.window, node: Chatnode):
     """
     Main curses loop for displaying messages and handling user input.
@@ -43,6 +44,7 @@ def _print_messages(stdscr: curses.window, node: Chatnode):
         curses.curs_set(True)
         time.sleep(0.25)
 
+
 def print_messages(node: Chatnode):
     """
     Initialize the curses wrapper to display messages.
@@ -50,7 +52,6 @@ def print_messages(node: Chatnode):
         node (Chatnode): The current chat node.
     """
     curses.wrapper(partial(_print_messages, node=node))
-
 
 
 def take_user_input(stdscr: curses.window, win: curses.window, node: Chatnode):
@@ -87,6 +88,7 @@ def take_user_input(stdscr: curses.window, win: curses.window, node: Chatnode):
 
         stdscr.refresh()
         win.refresh()
+
 
 def parse_command(node: Chatnode, msg: str) -> bool:
     """
@@ -136,6 +138,7 @@ def parse_command(node: Chatnode, msg: str) -> bool:
             return f"Now on channel {args[1]}"
     return False
 
+
 def headless(node : Chatnode, args):
     messages = node.messages
 
@@ -154,6 +157,7 @@ def headless(node : Chatnode, args):
         for n, i in enumerate(range(start, len(messages))):
             out = f'[{messages[i][1]}] {messages[i][0]} : {messages[i][2]}'
         time.sleep(0.25)
+
 
 if __name__ == '__main__':
     pass
