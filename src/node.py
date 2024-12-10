@@ -36,6 +36,7 @@ class Chatnode:
         # Channel values
         self.channel_curr = "general"
         self.subscribed_channels = set(["general", "system"])
+        self.seen_set = set()
 
         # Failure handeling
         self.node_directory = []
@@ -90,6 +91,7 @@ def send_chat(node: Chatnode, chat_msg: str):
     try:
         rpc = json.dumps({
             "method": "new-msg",
+            "timestamp": time.time(),
             "user": node.username,
             "author": node.username,
             "channel": node.channel_curr,

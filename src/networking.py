@@ -128,10 +128,18 @@ def receive_rpc(c_socket)->bytes:
     return b''.join(chunks)
 
 def pass_along(data, node, msg:bytes):
- 
-    if data["user"] != node.username:
-        msg = msg.decode('utf-8')
-        send_rpc(node, node.socket_next, msg)
+    try:
+        id = (data["user"], data["timestamp"])
+
+        if id in node.seen_set:
+            return
+        node.seen_set.add(id)
+    
+        if data["user"] != node.username:
+            msg = msg.decode('utf-8')
+            send_rpc(node, node.socket_next, msg)
+    except Exception as e:
+        LOG.error(f"Error passing along : {e} : {msg} : {data}")
 
 	
 def update_prev(data, node):
@@ -237,6 +245,7 @@ def rollcall_checkin(data, node):
             rpc = json.dumps({
                 "method": "rollcall-results",
                 "user": data["user"],
+                "timestamp": time.time(),
                 "attendance": data["attendance"]
             })
             send_rpc(node, node.socket_next, rpc)
@@ -327,6 +336,7 @@ def join_node(node, next_node_address: str) -> bool:
         try:
             rpc = json.dumps({
                 "method": "new-msg",
+                "timestamp": time.time(),
                 "author": "CLUSTER",
                 "channel": "system",
                 "user": node.username,
