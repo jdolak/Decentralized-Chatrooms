@@ -19,4 +19,7 @@ kill:
 	-pgrep -u jdolak python3
 	-pkill -u jdolak python3
 
+zip:
+	tar -czf ./src.tar ./src/
+
 reset: kill clear-errs clear-chats
