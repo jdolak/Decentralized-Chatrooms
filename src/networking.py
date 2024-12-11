@@ -297,14 +297,7 @@ def find_node(node):
             if node.username == node.node_directory[i][0]:
                 if len(node.node_directory) <=2:
                     node.no_neighbor = True
-
-                    LOG.info("here")
-
-                    if select.select([],[node.socket_prev_c],[],0)[1]:
-                        LOG.info("there")
-                        addr = node.socket_prev_c.getpeername()
-                        join_node(node, f"{addr[0]}:{addr[1]}")
-                        
+                    #if select.select([],[node.socket_prev_c],[],0)[1]:
                 LOG.critical(f"Could not reconnect to cluster : no neighbors {node.no_neighbor}")
                 return 1
             else:
