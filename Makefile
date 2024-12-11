@@ -29,5 +29,6 @@ copy:
 	cp ./condor.submit /tmp/jdolak 
 	cp ./submit.sh /tmp/jdolak 
 	cp ./src.tar /tmp/jdolak 
+	cp ./ppy.tar /tmp/jdolak 
 
 reset: kill clear-errs clear-chats

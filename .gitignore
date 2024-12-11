@@ -3,3 +3,5 @@
 **/errors.log
 **/*.log
 **/*.ckpt
+**/ppy/*
+**/src.tar
