@@ -2,9 +2,10 @@
 
 import json
 import os
-from tools import LOG, NAME
+import pickle
+from tools import LOG, NAME, CKPT_FILE, LOG_FILE
 
-def read_chats_local_file(start: int, end: int, filename=f"{NAME}-chats.log") -> list:
+def read_chats_local_file(node) -> list:
     """
     Read a range of chat messages from the local file.
     Args:
@@ -14,22 +15,44 @@ def read_chats_local_file(start: int, end: int, filename=f"{NAME}-chats.log") ->
     Returns:
         list: A list of chat messages in the specified range.
     """
-    if not os.path.exists(filename):
-        LOG.warning(f"File {filename} does not exist.")
-        return []
 
-    messages = []
+    ckpt = CKPT_FILE
+    log = LOG_FILE
+
+    messages = read_ckpt(node, ckpt)
+
+    if not os.path.exists(log):
+        return messages
+
     try:
-        with open(filename, 'r') as f:
+        with open(log, 'r') as f:
             for line in f:
-                messages.append(json.loads(line))
-        return messages[start:end]
+                data = json.loads(line)
+                messages.append((data["author"], data["channel"], data["content"]))
+        return messages
     except Exception as e:
-        LOG.error(f"Error reading file {filename}: {e}")
+        LOG.error(f"Error reading file {log} and {ckpt}: {e}")
+        return []
+    
+
+def read_ckpt(node, checkpoint)->list:
+    try:
+        if not os.path.exists(checkpoint):
+            with open(checkpoint, 'wb') as f:
+                pickle.dump(node.messages,f)
+
+                f.flush()
+                os.fsync(f.fileno())
+
+        with open(checkpoint, 'rb') as f:
+            messages = pickle.load(f)
+            return messages
+    except Exception as e:
+        LOG.error(f"error reading checkpoint : {e}")
         return []
 
 
-def write_chat_local_file(msg: dict, filename="chats.log"):
+def write_chat_local_file(msg, filename=LOG_FILE):
     """
     Append a single chat message to the local file.
     Args:
@@ -38,8 +61,8 @@ def write_chat_local_file(msg: dict, filename="chats.log"):
     """
     try:
         with open(filename, 'a') as f:
-            f.write(json.dumps(msg) + '\n')
-            LOG.debug(f"Message written to file: {msg}")
+            f.write(msg + '\n')
+            LOG.debug(f"Message written to file: {str(msg)}")
     except Exception as e:
         LOG.error(f"Error writing to file {filename}: {e}")
 
@@ -57,6 +80,24 @@ def log_transaction(data: dict, msg_arr: list):
         LOG.info(f"Transaction logged and in-memory array updated: {data}")
     except Exception as e:
         LOG.error(f"Error logging transaction: {e}")
+
+
+def create_checkpoint(node, checkpoint, log):
+
+    with open(f"{checkpoint}.swp", 'wb') as f:
+        pickle.Pickler(f).dump(node.messages)
+        f.flush()
+        os.fsync(f.fileno())
+
+    os.rename(f"{checkpoint}.swp", checkpoint)
+
+    with open(log, 'w+') as f:
+        f.truncate(0)
+        f.flush()
+        os.fsync(f.fileno())
+
+    return 0
+
 
 
 if __name__ == '__main__':

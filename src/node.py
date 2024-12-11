@@ -3,7 +3,8 @@
 import json
 import socket
 from tools import LOG, ARGS
-from networking import send_rpc, receive_rpc, parse_rpc, join_node
+from networking import send_rpc, receive_rpc, parse_rpc
+from files import write_chat_local_file
 import select
 import time
 
@@ -98,6 +99,7 @@ def send_chat(node: Chatnode, chat_msg: str):
             "content": chat_msg
         })
         send_rpc(node, node.socket_next, rpc)
+        write_chat_local_file(rpc)
         LOG.info(f"Message sent from {node.username}: {chat_msg}")
     except Exception as e:
         LOG.error(f"Failed to send message: {e}")

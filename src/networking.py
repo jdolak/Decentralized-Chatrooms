@@ -3,9 +3,10 @@
 import json
 
 from tools import DEBUG, LOG
-from files import log_transaction
+from files import write_chat_local_file
 import socket
 import time
+import select
 
 class socketTimout(Exception):
     pass
@@ -219,6 +220,7 @@ def new_msg(data, node, msg):
 
     if data["user"] != node.username and data["channel"] in node.subscribed_channels:
         node.messages.append((data["author"], data["channel"], data["content"]))
+        write_chat_local_file(msg.decode())
     else:
         spam_test(data,node)
     pass_along(data, node, msg)
@@ -289,10 +291,21 @@ def find_node(node):
     i = 0
 
     while True:
-        if node.username == node.node_directory[i][0]:
+        if node.username == node.node_directory[i][0] and self_index == -1:
             self_index = i
         elif self_index != -1:
             if node.username == node.node_directory[i][0]:
+                if len(node.node_directory) <=2:
+                    node.no_neighbor = True
+
+                    LOG.info("here")
+
+                    if select.select([],[node.socket_prev_c],[],0)[1]:
+                        LOG.info("there")
+                        addr = node.socket_prev_c.getpeername()
+                        join_node(node, f"{addr[0]}:{addr[1]}")
+                        
+                LOG.critical(f"Could not reconnect to cluster : no neighbors {node.no_neighbor}")
                 return 1
             else:
                 try:

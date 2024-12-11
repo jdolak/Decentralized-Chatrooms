@@ -4,6 +4,7 @@ from node import Chatnode, catalog_register
 from ui import print_messages, headless
 from tools import NAME, ARGS
 from benchmarking import test_latency
+from files import read_chats_local_file
 
 import threading
 
@@ -12,9 +13,9 @@ chatnode = Chatnode(NAME)
 
 def main():
     try:
-        listener_thread = threading.Thread(target=chatnode.start_listening, daemon=True)
-        listener_thread.start()
-        chatnode.messages = [("SYSTEM", "system", f"you are listening on {chatnode.addr}")]
+        threading.Thread(target=chatnode.start_listening, daemon=True).start()
+        chatnode.messages = read_chats_local_file(chatnode)
+        chatnode.messages.append(("SYSTEM", "system", f"you are listening on {chatnode.addr}"))
 
         if ARGS.advertise:
             catalog_thread = threading.Thread(target=catalog_register, args=(chatnode,), daemon=True).start()

@@ -3,6 +3,8 @@ import argparse
 
 DEBUG = False
 
+
+
 parser = argparse.ArgumentParser(prog='p2p chat')
 parser.add_argument('--headless', type=bool, default=False, required=False)
 parser.add_argument('--join', type=str, default=0, required=False)
@@ -24,3 +26,6 @@ logging.basicConfig(level=logging.DEBUG,
                     filemode="a")
 
 LOG = logging.getLogger()
+
+LOG_FILE = f"./logs/{NAME}-chats.log"
+CKPT_FILE = f"./logs/{NAME}-chats.ckpt"
