@@ -1,4 +1,4 @@
-# Peer-to-Peer Chat Application
+# Decentralized Chat Application
 
 This project implements a distributed, decentralized, messaging system using a ring structure. The application allows nodes to join a network, send chat messages, and relay information across the network without requiring a centralized server. Each node in the network communicates with its predecessor and successor to form a resilient ring topology.
 
