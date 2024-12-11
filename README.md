@@ -1,6 +1,6 @@
 # Peer-to-Peer Chat Application
 
-This project implements a distributed peer-to-peer (P2P) messaging system using a ring structure. The application allows nodes to join a network, send chat messages, and relay information across the network without requiring a centralized server. Each node in the network communicates with its predecessor and successor to form a resilient ring topology.
+This project implements a distributed, decentralized, messaging system using a ring structure. The application allows nodes to join a network, send chat messages, and relay information across the network without requiring a centralized server. Each node in the network communicates with its predecessor and successor to form a resilient ring topology.
 
 ---
 
@@ -50,20 +50,14 @@ This project implements a distributed peer-to-peer (P2P) messaging system using 
 
 1. Clone the repository:
    ```bash
-   git clone https://github.com/yourusername/p2p-chat
-   cd p2p-chat
-   ```
-
-2. Install dependencies (if any):
-   ```bash
-   pip install -r requirements.txt
+   git clone git@github.com:jdolak/distsys-project.git
    ```
 
 ### Running the Application
 
 1. Start a node:
    ```bash
-   python node.py
+   python ./src/main.py
    ```
 
 2. Enter your username when prompted.
@@ -111,16 +105,7 @@ This project implements a distributed peer-to-peer (P2P) messaging system using 
 
 ### Running the Nodes
 
-1. Start Node A:
-   ```bash
-   python node.py
-   ```
-
-2. Start Node B and join Node A:
-   ```bash
-   python node.py
-   ```
-   Enter Node A’s address (e.g., `localhost:5000`) when prompted.
+...
 
 ---
 
@@ -150,8 +135,4 @@ Contributions are welcome! If you'd like to improve this project, please:
 This project is licensed under the MIT License. See the `LICENSE` file for details.
 
 ---
-
-## Contact
-
-For questions or feedback, please reach out to [your email or GitHub username].
 
