@@ -47,6 +47,9 @@ class Chatnode:
         self.dups = 0
         self.lost = 0
         self.test_order = []
+        self.throughput_active = False
+        self.throughput_count = 0
+        self.throughput_start = 0
 
 
     def start_listening(self):
@@ -99,7 +102,7 @@ def send_chat(node: Chatnode, chat_msg: str):
             "content": chat_msg
         })
         send_rpc(node, node.socket_next, rpc)
-        write_chat_local_file(rpc)
+        write_chat_local_file(node, rpc)
         LOG.info(f"Message sent from {node.username}: {chat_msg}")
     except Exception as e:
         LOG.error(f"Failed to send message: {e}")

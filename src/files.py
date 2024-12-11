@@ -3,7 +3,7 @@
 import json
 import os
 import pickle
-from tools import LOG, NAME, CKPT_FILE, LOG_FILE
+from tools import LOG, CKPT_FILE, LOG_FILE
 
 def read_chats_local_file(node) -> list:
     """
@@ -52,7 +52,7 @@ def read_ckpt(node, checkpoint)->list:
         return []
 
 
-def write_chat_local_file(msg, filename=LOG_FILE):
+def write_chat_local_file(node, msg, filename=LOG_FILE):
     """
     Append a single chat message to the local file.
     Args:
@@ -60,9 +60,12 @@ def write_chat_local_file(msg, filename=LOG_FILE):
         filename (str): The file where chats are stored.
     """
     try:
-        with open(filename, 'a') as f:
-            f.write(msg + '\n')
-            LOG.debug(f"Message written to file: {str(msg)}")
+        if not len(node.messages) % 500:
+            create_checkpoint(node, CKPT_FILE, LOG_FILE)
+        else:
+            with open(filename, 'a') as f:
+                f.write(msg + '\n')
+                LOG.debug(f"Message written to file: {str(msg)}")
     except Exception as e:
         LOG.error(f"Error writing to file {filename}: {e}")
 
@@ -83,18 +86,21 @@ def log_transaction(data: dict, msg_arr: list):
 
 
 def create_checkpoint(node, checkpoint, log):
+    try:
+        with open(f"{checkpoint}.swp", 'wb') as f:
+            pickle.Pickler(f).dump(node.messages)
+            f.flush()
+            os.fsync(f.fileno())
 
-    with open(f"{checkpoint}.swp", 'wb') as f:
-        pickle.Pickler(f).dump(node.messages)
-        f.flush()
-        os.fsync(f.fileno())
+        os.rename(f"{checkpoint}.swp", checkpoint)
 
-    os.rename(f"{checkpoint}.swp", checkpoint)
-
-    with open(log, 'w+') as f:
-        f.truncate(0)
-        f.flush()
-        os.fsync(f.fileno())
+        with open(log, 'w+') as f:
+            f.truncate(0)
+            f.flush()
+            os.fsync(f.fileno())
+        LOG.info(f"Created checkpoint at {len(node.messages)}")
+    except Exception as e:
+        LOG.error(f"Error creating checkpoint at {len(node.messages)} : {e}")
 
     return 0
 

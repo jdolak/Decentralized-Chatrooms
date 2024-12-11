@@ -19,7 +19,7 @@ if not ARGS.username:
 else:
     NAME = ARGS.username
 
-logging.basicConfig(level=logging.DEBUG, 
+logging.basicConfig(level=logging.ERROR, 
                     format='%(asctime)s - %(levelname)s - %(funcName)s() - %(message)s',
                     filename=f"./logs/{NAME}-errors.log",
                     encoding="utf-8",

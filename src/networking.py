@@ -1,12 +1,13 @@
 #!/usr/bin/env python3
 
-import json
-
-from tools import DEBUG, LOG
+from tools import LOG
 from files import write_chat_local_file
+from bench_throughput import test_throughput
+
 import socket
 import time
-import select
+import json
+
 
 class socketTimout(Exception):
     pass
@@ -218,9 +219,10 @@ def new_prev(data, node):
 
 def new_msg(data, node, msg):
 
+    test_throughput(node)
     if data["user"] != node.username and data["channel"] in node.subscribed_channels:
         node.messages.append((data["author"], data["channel"], data["content"]))
-        write_chat_local_file(msg.decode())
+        write_chat_local_file(node, msg.decode())
     else:
         spam_test(data,node)
     pass_along(data, node, msg)

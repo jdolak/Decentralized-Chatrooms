@@ -7,7 +7,7 @@ def test_latency(chatnode):
         try:
             start = 0
             last_len = 0
-            #time.sleep(5)
+            time.sleep(5)
             while(True):
                 if not ARGS.spam:
                     length = len(set(map(lambda x:x[0], chatnode.node_directory)))
@@ -27,7 +27,9 @@ def test_latency(chatnode):
                     if start >= 250:
                         break
 
-            LOG.debug(f"average latency {chatnode.username}:  {sum(chatnode.test_set.values()) / len(chatnode.test_set.keys())}")
-            LOG.debug(f"dupicates {chatnode.username}: {chatnode.dups}")
+            chatnode.throughput_active = 2
+            LOG.critical(f"# average latency {chatnode.username}:  {sum(chatnode.test_set.values()) / len(chatnode.test_set.keys())}")
+            LOG.critical(f"# dupicates {chatnode.username}: {chatnode.dups}")
+
         except Exception as e:
             LOG.error(f"error during latency testing : {e}")
