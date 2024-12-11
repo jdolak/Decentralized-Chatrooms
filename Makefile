@@ -22,4 +22,12 @@ kill:
 zip:
 	tar -czf ./src.tar ./src/
 
+tmp:
+	-mkdir /tmp/jdolak
+
+copy:
+	cp ./condor.submit /tmp/jdolak 
+	cp ./submit.sh /tmp/jdolak 
+	cp ./src.tar /tmp/jdolak 
+
 reset: kill clear-errs clear-chats

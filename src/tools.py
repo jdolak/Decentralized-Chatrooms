@@ -3,7 +3,8 @@ import argparse
 
 DEBUG = False
 
-
+#LOGS_DIR = "./logs/"
+LOGS_DIR = "./"
 
 parser = argparse.ArgumentParser(prog='p2p chat')
 parser.add_argument('--headless', type=bool, default=False, required=False)
@@ -21,11 +22,11 @@ else:
 
 logging.basicConfig(level=logging.ERROR, 
                     format='%(asctime)s - %(levelname)s - %(funcName)s() - %(message)s',
-                    filename=f"./logs/{NAME}-errors.log",
+                    filename=f"{LOGS_DIR}{NAME}-errors.log",
                     encoding="utf-8",
                     filemode="a")
 
 LOG = logging.getLogger()
 
-LOG_FILE = f"./logs/{NAME}-chats.log"
-CKPT_FILE = f"./logs/{NAME}-chats.ckpt"
+LOG_FILE = f"{LOGS_DIR}{NAME}-chats.log"
+CKPT_FILE = f"{LOGS_DIR}{NAME}-chats.ckpt"
