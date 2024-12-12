@@ -35,6 +35,10 @@ Enter username: jdolak
 ```
 [general] Message: /join student10:9123
 ```
+5. Start chatting, just type and hit enter:
+```
+[general] Message: hello world!
+```
 
 ## Features
 
