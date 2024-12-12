@@ -140,6 +140,11 @@ def pass_along(data, node, msg:bytes):
         if data["user"] != node.username:
             msg = msg.decode('utf-8')
             send_rpc(node, node.socket_next, msg)
+
+        if data["method"] == "new-msg":
+            if data["author"] != "CLUSTER" and data["user"] != node.username:
+                test_throughput(node)
+                
     except Exception as e:
         LOG.error(f"Error passing along : {e} : {msg} : {data}")
 
@@ -219,12 +224,11 @@ def new_prev(data, node):
 
 def new_msg(data, node, msg):
 
-    test_throughput(node)
     if data["user"] != node.username and data["channel"] in node.subscribed_channels:
         node.messages.append((data["author"], data["channel"], data["content"]))
         write_chat_local_file(node, msg.decode())
-    else:
-        spam_test(data,node)
+
+    spam_test(data,node)
     pass_along(data, node, msg)
 
 
@@ -274,16 +278,19 @@ def rollcall_results(data, node, msg):
 
 def spam_test(data, node):
 
-    if f"{node.username}-latency" in data["content"]:
+    
+    if node.username == data["user"]:
         try:
             _, num, stime = data["content"].split(':')
             if num in node.test_set:
                 node.dups = node.dups + 1
-            else:
-                node.test_set[num] = time.time() - float(stime)
+            node.test_set[num] = time.time() - float(stime)
+            #LOG.warning(f"set {num} as {time.time() - float(stime)}")
                 #LOG.debug(f"timestamps={node.username}:{time.time()}:{stime}")
         except Exception as e:
             LOG.warning(f"could not parse : {data["content"]} : {e}")
+    #else: 
+        #LOG.error(f"{data["user"]} - {node.username}")
 
 
 def find_node(node):

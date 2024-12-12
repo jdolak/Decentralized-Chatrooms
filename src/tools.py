@@ -3,8 +3,8 @@ import argparse
 
 DEBUG = False
 
-#LOGS_DIR = "./logs/"
-LOGS_DIR = "./"
+LOGS_DIR = "./logs/"
+#LOGS_DIR = "./"
 
 parser = argparse.ArgumentParser(prog='p2p chat')
 parser.add_argument('--headless', type=bool, default=False, required=False)
@@ -20,7 +20,7 @@ if not ARGS.username:
 else:
     NAME = ARGS.username
 
-logging.basicConfig(level=logging.ERROR, 
+logging.basicConfig(level=logging.WARNING, 
                     format='%(asctime)s - %(levelname)s - %(funcName)s() - %(message)s',
                     filename=f"{LOGS_DIR}{NAME}-errors.log",
                     encoding="utf-8",
