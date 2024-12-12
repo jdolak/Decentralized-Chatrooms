@@ -7,6 +7,35 @@ This project implements a distributed, decentralized, messaging system using a r
 - [Jachob Dolak](https://github.com/jdolak/)
 - [Lang Li](https://github.com/easyrider11)
 
+## How to Run the Application
+
+### Prerequisites
+
+- Python 3.12+
+
+### Installation
+
+1. Clone the repository and cd into it:
+   ```bash
+   git clone git@github.com:jdolak/distsys-project.git
+   cd distsys-project
+   ```
+
+### Running the Application
+
+1. Start a node:
+   ```bash
+   python ./src/main.py
+   ```
+2. Type username when prompted:
+```
+Enter username: jdolak
+```
+4. Type `/join` with the address of a node you would like to connect to:
+```
+[general] Message: /join student10:9123
+```
+
 ## Features
 
 - **Ring-based Peer-to-Peer Communication**: Nodes connect in a circular topology to ensure all messages can propagate across the network.
@@ -42,26 +71,6 @@ This project implements a distributed, decentralized, messaging system using a r
 
 ---
 
-## How to Run the Application
-
-### Prerequisites
-
-- Python 3.8+
-- Basic understanding of networking concepts (e.g., sockets).
-
-### Installation
-
-1. Clone the repository:
-   ```bash
-   git clone git@github.com:jdolak/distsys-project.git
-   ```
-
-### Running the Application
-
-1. Start a node:
-   ```bash
-   python ./src/main.py
-   ```
 
 2. Enter your username when prompted.
 3. Provide the address (host:port) of an existing node to join the ring. If this is the first node, skip this step.
