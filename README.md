@@ -2,7 +2,6 @@
 
 This project implements a distributed, decentralized, messaging system using a ring structure. The application allows nodes to join a network, send chat messages, and relay information across the network without requiring a centralized server. Each node in the network communicates with its predecessor and successor to form a resilient ring topology.
 
----
 ## Authors
 - [Jachob Dolak](https://github.com/jdolak/)
 - [Lang Li](https://github.com/easyrider11)
@@ -16,22 +15,22 @@ This project implements a distributed, decentralized, messaging system using a r
 ### Installation
 
 1. Clone the repository and cd into it:
-   ```bash
-   git clone git@github.com:jdolak/distsys-project.git
-   cd distsys-project
-   ```
+```bash
+git clone git@github.com:jdolak/distsys-project.git
+cd distsys-project
+```
 
 ### Running the Application
 
 1. Start a node:
-   ```bash
-   python ./src/main.py
-   ```
+```bash
+python ./src/main.py
+```
 2. Type username when prompted:
 ```
 Enter username: jdolak
 ```
-4. Type `/join` with the address of a node you would like to connect to:
+4. Type `/join <address>:<port>` with the address of a node you would like to connect to:
 ```
 [general] Message: /join student10:9123
 ```
@@ -47,7 +46,6 @@ Enter username: jdolak
 - **Dynamic Node Joining**: Nodes can dynamically join the ring and update the network's topology.
 - **Message Relaying**: Messages are forwarded across the ring to ensure delivery to all participants.
 
----
 
 ## System Architecture
 
@@ -73,13 +71,6 @@ Enter username: jdolak
    - Nodes listen for incoming messages from their predecessor.
    - Messages are parsed, processed, and added to the local message store.
 
----
-
-
-2. Enter your username when prompted.
-3. Provide the address (host:port) of an existing node to join the ring. If this is the first node, skip this step.
-4. Begin chatting!
-
 ### Example Workflow
 
 1. **Node A** starts the application and listens for connections.
@@ -87,11 +78,8 @@ Enter username: jdolak
 3. **Node A** sends a message, which is relayed to **Node B**.
 4. New nodes can continue joining the ring and participate in the chat.
 
----
 
 ## Code Overview
-
-### Key Files
 
 - **`node.py`**:
   - Defines the `Chatnode` class for managing a node's state and connections.
@@ -107,34 +95,6 @@ Enter username: jdolak
 - **`files.py`**:
   - Manages message persistence and logging.
 
----
-
-## Example Configuration
-
-- **Node A**:
-  - Host: `localhost`
-  - Port: `5000`
-
-- **Node B**:
-  - Host: `localhost`
-  - Port: `5001`
-
-### Running the Nodes
-
-...
-
----
-
-## Future Enhancements
-
-- **Vote Operations**:
-  - Add the ability to start a vote and view vote results.
-- **Fault Tolerance**:
-  - Handle node failures by dynamically updating the ring structure.
-- **UI Enhancements**:
-  - Improve the terminal-based interface for better usability.
-
----
 
 ## Contributing
 
@@ -143,12 +103,3 @@ Contributions are welcome! If you'd like to improve this project, please:
 1. Fork the repository.
 2. Create a new branch for your feature or bug fix.
 3. Submit a pull request with a detailed description of your changes.
-
----
-
-## License
-
-This project is licensed under the MIT License. See the `LICENSE` file for details.
-
----
-
